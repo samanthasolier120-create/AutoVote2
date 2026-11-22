@@ -1,13 +1,14 @@
--- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V)
+-- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V - 30 clics/seg)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
 local TargetName = "Lorena" -- Nombre que aparece en la tarjeta
 local TargetUserId = LocalPlayer.UserId -- Respaldo con tu avatar actual
+local VelocidadClic = 0.023 -- Exactamente 30 clics por segundo
+
 local scriptActivo = false
 local cachedButton = nil
 
@@ -114,36 +115,39 @@ local function findTargetCard()
     return nil
 end
 
--- Ráfaga de clics en el centro de la tarjeta
-local function spamClick(guiObject)
+-- Clic único y limpio en el centro de la tarjeta
+local function singleClick(guiObject)
     local absPos = guiObject.AbsolutePosition
     local absSize = guiObject.AbsoluteSize
     local clickX = absPos.X + (absSize.X / 2)
     local clickY = absPos.Y + (absSize.Y / 2) + 36
     
-    for i = 1, 5 do
-        VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
-        VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
-    end
+    VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
+    task.wait(0.01)
+    VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
     
     pcall(function()
         for _, conn in pairs(getconnections(guiObject.MouseButton1Click)) do conn:Fire() end
-        for _, conn in pairs(getconnections(guiObject.MouseButton1Down)) do conn:Fire() end
         for _, conn in pairs(getconnections(guiObject.TouchTap)) do conn:Fire() end
     end)
 end
 
--- Bucle de máxima velocidad
-RunService.RenderStepped:Connect(function()
-    if not scriptActivo then return end
-    
-    if not cachedButton or not cachedButton:IsDescendantOf(game) then
-        cachedButton = findTargetCard()
-    end
-    
-    if cachedButton then
-        pcall(function()
-            spamClick(cachedButton)
-        end)
+-- Bucle controlado de 30 clics por segundo
+task.spawn(function()
+    while true do
+        if scriptActivo then
+            if not cachedButton or not cachedButton:IsDescendantOf(game) then
+                cachedButton = findTargetCard()
+            end
+            
+            if cachedButton then
+                pcall(function()
+                    singleClick(cachedButton)
+                end)
+            end
+            task.wait(VelocidadClic)
+        else
+            task.wait(0.1)
+        end
     end
 end)
