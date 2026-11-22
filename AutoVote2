@@ -1,4 +1,4 @@
--- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V - 30 clics/seg)
+-- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V - 9 clics/seg)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
@@ -7,7 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 
 local TargetName = "Lorena" -- Nombre que aparece en la tarjeta
 local TargetUserId = LocalPlayer.UserId -- Respaldo con tu avatar actual
-local VelocidadClic = 0.023 -- Exactamente 30 clics por segundo
+local VelocidadClic = 0.10 -- ~9 clics por segundo (0.10 + 0.01 de pausa interna)
 
 local scriptActivo = false
 local cachedButton = nil
@@ -132,7 +132,7 @@ local function singleClick(guiObject)
     end)
 end
 
--- Bucle controlado de 30 clics por segundo
+-- Bucle controlado de ~9 clics por segundo
 task.spawn(function()
     while true do
         if scriptActivo then
