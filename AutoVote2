@@ -1,4 +1,4 @@
--- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V - 9 clics/seg)
+-- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V - 5 clics/seg Estables)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
@@ -7,7 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 
 local TargetName = "Lorena" -- Nombre que aparece en la tarjeta
 local TargetUserId = LocalPlayer.UserId -- Respaldo con tu avatar actual
-local VelocidadClic = 0.10 -- ~9 clics por segundo (0.10 + 0.01 de pausa interna)
+local VelocidadClic = 0.19 -- ~5 clics por segundo (Ideal para evitar lag y saltos del servidor)
 
 local scriptActivo = false
 local cachedButton = nil
@@ -115,7 +115,7 @@ local function findTargetCard()
     return nil
 end
 
--- Clic único y limpio en el centro de la tarjeta
+-- Clic físico limpio y seguro para que el servidor lo procese sin rechazarlo
 local function singleClick(guiObject)
     local absPos = guiObject.AbsolutePosition
     local absSize = guiObject.AbsoluteSize
@@ -123,16 +123,11 @@ local function singleClick(guiObject)
     local clickY = absPos.Y + (absSize.Y / 2) + 36
     
     VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
-    task.wait(0.01)
+    task.wait(0.02)
     VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
-    
-    pcall(function()
-        for _, conn in pairs(getconnections(guiObject.MouseButton1Click)) do conn:Fire() end
-        for _, conn in pairs(getconnections(guiObject.TouchTap)) do conn:Fire() end
-    end)
 end
 
--- Bucle controlado de ~9 clics por segundo
+-- Bucle controlado de 5 clics por segundo estables
 task.spawn(function()
     while true do
         if scriptActivo then
