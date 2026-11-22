@@ -1,4 +1,4 @@
--- Script AutoVote para A Fazenda Fisher (Busca "Saory" + Tecla P)
+-- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
@@ -6,14 +6,14 @@ local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local TargetName = "Saory" -- Nombre que aparece en la tarjeta
--- local TargetUserId = LocalPlayer.UserId -- Respaldo desactivado para no votar por ti
+local TargetName = "Lorena" -- Nombre que aparece en la tarjeta
+local TargetUserId = LocalPlayer.UserId -- Respaldo con tu avatar actual
 local scriptActivo = false
 local cachedButton = nil
 
 -- Crear Interfaz Flotante
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AutoVoteGUI_Saory"
+screenGui.Name = "AutoVoteGUI_Lorena"
 screenGui.ResetOnSpawn = false
 
 pcall(function() screenGui.Parent = CoreGui end)
@@ -36,7 +36,7 @@ local statusLabel = Instance.new("TextLabel")
 statusLabel.Size = UDim2.new(1, 0, 0.4, 0)
 statusLabel.Position = UDim2.new(0, 0, 0.08, 0)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "AHORA: OFF (Tecla 'P')"
+statusLabel.Text = "AHORA: OFF (Tecla 'V')"
 statusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
 statusLabel.TextSize = 13
 statusLabel.Font = Enum.Font.SourceSansBold
@@ -46,7 +46,7 @@ local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.85, 0, 0.38, 0)
 toggleButton.Position = UDim2.new(0.075, 0, 0.52, 0)
 toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-toggleButton.Text = "ACTIVAR (P)"
+toggleButton.Text = "ACTIVAR (V)"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.TextSize = 14
 toggleButton.Font = Enum.Font.SourceSansBold
@@ -59,34 +59,34 @@ btnCorner.Parent = toggleButton
 local function toggleState()
     scriptActivo = not scriptActivo
     if scriptActivo then
-        statusLabel.Text = "AHORA: ON (Tecla 'P')"
+        statusLabel.Text = "AHORA: ON (Tecla 'V')"
         statusLabel.TextColor3 = Color3.fromRGB(60, 255, 60)
-        toggleButton.Text = "DESACTIVAR (P)"
+        toggleButton.Text = "DESACTIVAR (V)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
     else
-        statusLabel.Text = "AHORA: OFF (Tecla 'P')"
+        statusLabel.Text = "AHORA: OFF (Tecla 'V')"
         statusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-        toggleButton.Text = "ACTIVAR (P)"
+        toggleButton.Text = "ACTIVAR (V)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         cachedButton = nil
     end
 end
 
--- Detectar la tecla "P" del teclado
+-- Detectar la tecla "V" del teclado
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.P then
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.V then
         toggleState()
     end
 end)
 
 toggleButton.MouseButton1Click:Connect(toggleState)
 
--- Busca la tarjeta por el nombre "Saory"
+-- Busca la tarjeta por el nombre "Lorena" o por tu ID de avatar
 local function findTargetCard()
     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
     if not playerGui then return nil end
     
-    -- Buscar por el texto "Saory" en las placas de votación
+    -- 1. Buscar por el texto "Lorena" en las placas de votación
     for _, element in pairs(playerGui:GetDescendants()) do
         if (element:IsA("TextLabel") or element:IsA("TextButton")) and string.find(string.lower(element.Text), string.lower(TargetName)) then
             if not element:FindFirstAncestorOfClass("BillboardGui") then
@@ -96,6 +96,17 @@ local function findTargetCard()
                 if clickable then
                     return clickable
                 end
+            end
+        end
+    end
+    
+    -- 2. Respaldo: Buscar por la imagen del avatar
+    for _, element in pairs(playerGui:GetDescendants()) do
+        if (element:IsA("ImageLabel") or element:IsA("ImageButton")) and not element:FindFirstAncestorOfClass("BillboardGui") then
+            if string.find(tostring(element.Image), tostring(TargetUserId)) then
+                return element:FindFirstAncestorOfClass("ImageButton") 
+                    or element:FindFirstAncestorOfClass("TextButton") 
+                    or element
             end
         end
     end
