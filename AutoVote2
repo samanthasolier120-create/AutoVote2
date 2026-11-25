@@ -1,4 +1,4 @@
--- Script Ultra Simple AutoVote (Busca texto "Lorena" + Tecla V)
+-- Script Ultra Simple AutoVote (Filtra textos ocultos + Busca "Lorena" + Tecla V)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
@@ -50,31 +50,46 @@ end)
 
 toggleButton.MouseButton1Click:Connect(toggleState)
 
--- Bucle principal ultra directo
+-- Comprueba si el elemento y sus contenedores están realmente visibles en pantalla
+local function esVisibleEnPantalla(guiObject)
+    local actual = guiObject
+    while actual and actual:IsA("GuiObject") do
+        if not actual.Visible then
+            return false
+        end
+        actual = actual.Parent
+    end
+    return true
+end
+
+-- Bucle principal directo
 task.spawn(function()
     while true do
         if scriptActivo then
             local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
             if playerGui then
-                -- Busca cualquier texto que contenga "Lorena"
                 for _, element in pairs(playerGui:GetDescendants()) do
-                    if (element:IsA("TextLabel") or element:IsA("TextButton")) and string.find(string.lower(element.Text), string.lower(TargetName)) then
+                    if (element:IsA("TextLabel") or element:IsA("TextButton")) 
+                       and string.find(string.lower(element.Text), string.lower(TargetName))
+                       and not element:FindFirstAncestorOfClass("BillboardGui") then
                         
-                        -- Obtiene sus coordenadas exactas en pantalla y hace clic
                         local absPos = element.AbsolutePosition
                         local absSize = element.AbsoluteSize
-                        local clickX = absPos.X + (absSize.X / 2)
-                        local clickY = absPos.Y + (absSize.Y / 2)
                         
-                        VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
-                        task.wait(0.02)
-                        VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
-                        
-                        break -- Rompe el ciclo por ronda para disparar limpiamente
+                        -- Solo hace clic si el cartel es visible y está dentro de la pantalla
+                        if esVisibleEnPantalla(element) and absSize.X > 20 and absSize.Y > 10 and absPos.Y > 50 then
+                            local clickX = absPos.X + (absSize.X / 2)
+                            local clickY = absPos.Y + (absSize.Y / 2) + 36
+                            
+                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
+                            task.wait(0.02)
+                            VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
+                            break
+                        end
                     end
                 end
             end
-            task.wait(0.15) -- Velocidad constante de ~6-7 clics por segundo
+            task.wait(0.15) -- ~6-7 clics por segundo
         else
             task.wait(0.2)
         end
