@@ -1,20 +1,19 @@
--- Script AutoVote para A Fazenda Fisher (Busca "Lorena" + Tecla V - 5 clics/seg Estables)
+-- Script AutoVote para A Fazenda Fisher (Busca la tarjeta completa de "Mirella" + Tecla V)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local TargetName = "Mirella" -- Nombre que aparece en la tarjeta
-local TargetUserId = LocalPlayer.UserId -- Respaldo con tu avatar actual
-local VelocidadClic = 0.19 -- ~5 clics por segundo (Ideal para evitar lag y saltos del servidor)
+local TargetName = "Mirella" -- Nombre de la concursante que aparece en la tarjeta
+local VelocidadClic = 0.19 -- ~5 clics por segundo estables
 
 local scriptActivo = false
 local cachedButton = nil
 
 -- Crear Interfaz Flotante
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AutoVoteGUI_Lorena"
+screenGui.Name = "AutoVoteGUI_Mirella"
 screenGui.ResetOnSpawn = false
 
 pcall(function() screenGui.Parent = CoreGui end)
@@ -82,52 +81,41 @@ end)
 
 toggleButton.MouseButton1Click:Connect(toggleState)
 
--- Busca la tarjeta por el nombre "Lorena" o por tu ID de avatar
+-- Busca la tarjeta completa basándose en el nombre de Mirella
 local function findTargetCard()
     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
     if not playerGui then return nil end
     
-    -- 1. Buscar por el texto "Lorena" en las placas de votación
     for _, element in pairs(playerGui:GetDescendants()) do
-        if (element:IsA("TextLabel") or element:IsA("TextButton")) and string.find(string.lower(element.Text), string.lower(TargetName)) then
-            if not element:FindFirstAncestorOfClass("BillboardGui") then
-                local clickable = element:FindFirstAncestorOfClass("ImageButton") 
-                               or element:FindFirstAncestorOfClass("TextButton") 
-                               or element.Parent
-                if clickable then
-                    return clickable
+        if element:IsA("TextLabel") or element:IsA("TextButton") then
+            if string.find(string.lower(element.Text), string.lower(TargetName)) then
+                -- Sube en la jerarquía para encontrar el contenedor principal de la tarjeta de la concursante
+                local parent = element.Parent
+                for i = 1, 3 do
+                    if parent and parent.Parent and parent.Parent:IsA("ScreenGui") == false then
+                        parent = parent.Parent
+                    end
                 end
+                return parent or element
             end
         end
     end
-    
-    -- 2. Respaldo: Buscar por la imagen del avatar
-    for _, element in pairs(playerGui:GetDescendants()) do
-        if (element:IsA("ImageLabel") or element:IsA("ImageButton")) and not element:FindFirstAncestorOfClass("BillboardGui") then
-            if string.find(tostring(element.Image), tostring(TargetUserId)) then
-                return element:FindFirstAncestorOfClass("ImageButton") 
-                    or element:FindFirstAncestorOfClass("TextButton") 
-                    or element
-            end
-        end
-    end
-    
     return nil
 end
 
--- Clic físico limpio y seguro para que el servidor lo procese sin rechazarlo
+-- Clic físico limpio en el centro de la tarjeta de votación
 local function singleClick(guiObject)
     local absPos = guiObject.AbsolutePosition
     local absSize = guiObject.AbsoluteSize
     local clickX = absPos.X + (absSize.X / 2)
-    local clickY = absPos.Y + (absSize.Y / 2) + 36
+    local clickY = absPos.Y + (absSize.Y / 2)
     
     VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
     task.wait(0.02)
     VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
 end
 
--- Bucle controlado de 5 clics por segundo estables
+-- Bucle controlado
 task.spawn(function()
     while true do
         if scriptActivo then
