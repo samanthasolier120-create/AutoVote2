@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local TargetName = "Lorena" -- Nombre que aparece en la tarjeta
+local TargetName = "Mirella" -- Nombre que aparece en la tarjeta
 local TargetUserId = LocalPlayer.UserId -- Respaldo con tu avatar actual
 local VelocidadClic = 0.19 -- ~5 clics por segundo (Ideal para evitar lag y saltos del servidor)
 
