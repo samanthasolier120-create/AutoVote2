@@ -1,12 +1,12 @@
--- Script AutoVote Dinámico Blindado (Funciona con Lorena conectada + Sigue la tarjeta aunque cambie de sitio)
+-- Script AutoVote Dinámico Blindado (10 clics/segundo + Sigue la tarjeta de posición)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local TargetName = "Dayane" -- Cambia esto por la concursante que toque
-local VelocidadClic = 0.19 -- ~5 clics por segundo estables
+local TargetName = "Lorena" -- Cambia esto por la concursante que toque
+local VelocidadClic = 0.08 -- 10 clics por segundo (0.08 de pausa + 0.02 de pulso)
 local scriptActivo = false
 
 -- Crear Interfaz Flotante
@@ -105,7 +105,7 @@ local function findTargetCard()
                 while current and current ~= playerGui do
                     if current:IsA("Frame") or current:IsA("ImageButton") or current:IsA("TextButton") then
                         local size = current.AbsoluteSize
-                        -- Tamaño típico de tarjeta de votación (evita cajas minúsculas o pantallas completas)
+                        -- Tamaño típico de tarjeta de votación
                         if size.X > 90 and size.X < 450 and size.Y > 110 and size.Y < 550 then
                             return current
                         end
@@ -118,7 +118,7 @@ local function findTargetCard()
     return nil
 end
 
--- Bucle de clics con recálculo de posición en cada ronda
+-- Bucle de clics a máxima velocidad (10 por segundo)
 task.spawn(function()
     while true do
         if scriptActivo then
