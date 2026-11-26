@@ -1,14 +1,13 @@
--- Script AutoVote Dinámico (Detecta la tarjeta por su posición real sin importar dónde se mueva)
+-- Script AutoVote Dinámico Blindado (Funciona con Lorena conectada + Sigue la tarjeta aunque cambie de sitio)
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local TargetName = "Mirella" -- Cambia esto por "Lorena" o la concursante que toque
+local TargetName = "Lorena" -- Cambia esto por la concursante que toque
 local VelocidadClic = 0.19 -- ~5 clics por segundo estables
 local scriptActivo = false
-local cachedButton = nil
 
 -- Crear Interfaz Flotante
 local screenGui = Instance.new("ScreenGui")
@@ -67,7 +66,6 @@ local function toggleState()
         statusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
         toggleButton.Text = "ACTIVAR (V)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        cachedButton = nil
     end
 end
 
@@ -79,26 +77,42 @@ end)
 
 toggleButton.MouseButton1Click:Connect(toggleState)
 
--- Busca dinámicamente la tarjeta actual midiendo sus coordenadas en tiempo real
+-- Comprueba que tanto el texto como toda la tarjeta estén visibles de verdad
+local function esVisible(guiObject)
+    local actual = guiObject
+    while actual and actual:IsA("GuiObject") do
+        if not actual.Visible then
+            return false
+        end
+        actual = actual.Parent
+    end
+    return true
+end
+
+-- Busca dinámicamente la tarjeta visible sin confundirse con la lista de jugadores
 local function findTargetCard()
     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
     if not playerGui then return nil end
     
     for _, element in pairs(playerGui:GetDescendants()) do
-        if (element:IsA("TextLabel") or element:IsA("TextButton")) and string.find(string.lower(element.Text), string.lower(TargetName)) then
-            -- Busca el marco principal de la tarjeta de votación que lo contiene
-            local current = element.Parent
-            while current and current ~= playerGui do
-                -- Si detectamos un contenedor que tenga un tamaño de tarjeta típico (ancho y alto grandes)
-                if current:IsA("Frame") or current:IsA("ImageButton") or current:IsA("TextButton") then
-                    local size = current.AbsoluteSize
-                    if size.X > 80 and size.Y > 100 then
-                        return current
+        if (element:IsA("TextLabel") or element:IsA("TextButton")) 
+           and string.find(string.lower(element.Text), string.lower(TargetName))
+           and not element:FindFirstAncestorOfClass("BillboardGui") then
+            
+            -- Ignora textos ocultos o en la barra superior de jugadores
+            if esVisible(element) and element.AbsolutePosition.Y > 80 then
+                local current = element.Parent
+                while current and current ~= playerGui do
+                    if current:IsA("Frame") or current:IsA("ImageButton") or current:IsA("TextButton") then
+                        local size = current.AbsoluteSize
+                        -- Tamaño típico de tarjeta de votación (evita cajas minúsculas o pantallas completas)
+                        if size.X > 90 and size.X < 450 and size.Y > 110 and size.Y < 550 then
+                            return current
+                        end
                     end
+                    current = current.Parent
                 end
-                current = current.Parent
             end
-            return element.Parent
         end
     end
     return nil
@@ -108,14 +122,13 @@ end
 task.spawn(function()
     while true do
         if scriptActivo then
-            -- Vuelve a buscar la tarjeta constantemente para adaptarse si se mueve de sitio
             local targetCard = findTargetCard()
             
-            if targetCard and targetCard.AbsoluteSize.X > 0 then
+            if targetCard then
                 local absPos = targetCard.AbsolutePosition
                 local absSize = targetCard.AbsoluteSize
                 local clickX = absPos.X + (absSize.X / 2)
-                local clickY = absPos.Y + (absSize.Y / 2)
+                local clickY = absPos.Y + (absSize.Y / 2) + 36
                 
                 VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
                 task.wait(0.02)
