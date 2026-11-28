@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local TargetName = "Nadja Pessoa" -- Cambia esto por la concursante que toque
+local TargetName = "Lorena" -- Cambia esto por la concursante que toque
 local VelocidadClic = 0.08 -- 10 clics por segundo (0.08 de pausa + 0.02 de pulso)
 local scriptActivo = false
 
